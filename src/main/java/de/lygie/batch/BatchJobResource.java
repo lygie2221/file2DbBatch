@@ -16,7 +16,17 @@ public class BatchJobResource {
     public String startJob() {
         // Ruft den JobOperator ab und startet den Batch-Job (Jobname entspricht dem in der Job-Definition)
         JobOperator jobOperator = BatchRuntime.getJobOperator();
-        long executionId = jobOperator.start("chunkJob", null);
+        long executionId = jobOperator.start("import-job", null);
+        return "Batch-Job gestartet mit execution id: " + executionId;
+    }
+
+    @GET
+    @Path("startJob2")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String startJob2() {
+        // Ruft den JobOperator ab und startet den Batch-Job (Jobname entspricht dem in der Job-Definition)
+        JobOperator jobOperator = BatchRuntime.getJobOperator();
+        long executionId = jobOperator.start("import-job2", null);
         return "Batch-Job gestartet mit execution id: " + executionId;
     }
 }

@@ -5,8 +5,27 @@
         <feature>servlet-4.0</feature>
         <feature>jaxrs-2.1</feature>
         <feature>batch-1.0</feature>
+        <feature>jndi-1.0</feature>
+        <feature>jdbc-4.2</feature>
         <!-- Weitere Features wie CDI können bei Bedarf ergänzt werden -->
     </featureManager>
 
+    <library id="MySQLLib">
+        <fileset dir="${server.config.dir}/lib" includes="mysql-connector-java-8.0.28.jar"/>
+    </library>
+
+    <!-- DataSource definieren -->
+    <dataSource id="MySQLDataSource" jndiName="jdbc/MySQLDataSource">
+        <!-- Verweist auf die oben definierte Bibliothek -->
+        <jdbcDriver libraryRef="MySQLLib"/>
+        <properties
+                databaseName="db_performance_innodb"
+                serverName="localhost"
+                portNumber="3306"
+                user="lygie"
+                password="lygie"/>
+    </dataSource>
+
     <application id="import-job-1.0-SNAPSHOT" location="import-job-1.0-SNAPSHOT.war" type="war"/>
+    <jndiEntry jndiName="sourceFile" value="/tmp/input.txt" />
 </server>

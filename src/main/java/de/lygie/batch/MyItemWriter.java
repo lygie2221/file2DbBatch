@@ -1,6 +1,7 @@
 package de.lygie.batch;
 
 import javax.batch.api.chunk.ItemWriter;
+import javax.naming.InitialContext;
 import java.io.Serializable;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class MyItemWriter implements ItemWriter {
         for (Object item : items) {
             System.out.println("Processed: " + item);
         }
+
     }
 
     @Override
