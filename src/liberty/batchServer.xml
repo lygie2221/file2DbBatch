@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="Batch Chunk Processing Server">
+    <featureManager>
+        <!-- Aktivierung der benötigten Features -->
+        <feature>servlet-4.0</feature>
+        <feature>jaxrs-2.1</feature>
+        <feature>batch-1.0</feature>
+        <!-- Weitere Features wie CDI können bei Bedarf ergänzt werden -->
+    </featureManager>
+
+    <application id="import-job-1.0-SNAPSHOT" location="import-job-1.0-SNAPSHOT.war" type="war"/>
+</server>
