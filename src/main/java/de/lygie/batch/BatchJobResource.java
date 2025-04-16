@@ -27,11 +27,11 @@ public class BatchJobResource {
     public String startJob2() {
 
         Properties jobParams = new Properties();
-        jobParams.setProperty("chunkSize", "10");
+        jobParams.setProperty("chunkSize", "100");
 
         // Ruft den JobOperator ab und startet den Batch-Job (Jobname entspricht dem in der Job-Definition)
         JobOperator jobOperator = BatchRuntime.getJobOperator();
-        long executionId = jobOperator.start("import-job2", jobParams);
+        long executionId = jobOperator.start("import-job", jobParams);
         return "Batch-Job gestartet mit execution id: " + executionId;
     }
 }

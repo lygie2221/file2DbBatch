@@ -1,9 +1,8 @@
-package de.lygie.batch;
+package de.lygie.batch.einspielen;
 
 import javax.batch.api.chunk.ItemProcessor;
 import javax.enterprise.context.Dependent;
 import javax.inject.Named;
-import java.time.Instant;
 
 @Named
 @Dependent

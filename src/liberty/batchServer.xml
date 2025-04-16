@@ -19,8 +19,8 @@
         <!-- Verweist auf die oben definierte Bibliothek -->
         <jdbcDriver libraryRef="MySQLLib"/>
         <properties
-                databaseName="db_performance_innodb"
-                serverName="localhost"
+                databaseName="arbeitstabelle"
+                serverName="192.168.17.179"
                 portNumber="3306"
                 user="lygie"
                 password="lygie"/>

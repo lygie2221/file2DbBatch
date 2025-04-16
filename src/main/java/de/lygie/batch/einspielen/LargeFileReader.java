@@ -1,4 +1,4 @@
-package de.lygie.batch;
+package de.lygie.batch.einspielen;
 
 import javax.batch.api.BatchProperty;
 import javax.batch.api.chunk.ItemReader;
@@ -9,16 +9,10 @@ import javax.inject.Named;
 import javax.naming.InitialContext;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Named
 @Dependent
@@ -29,12 +23,7 @@ public class LargeFileReader implements ItemReader {
 
     Path path;
 
-    @Inject
-    @BatchProperty(name = "chunkSize")
-    private String chunkSizeProperty;
     private BufferedReader reader;
-
-    private int chunkSize;
 
     private long aktuelleZeile;
 
@@ -44,7 +33,6 @@ public class LargeFileReader implements ItemReader {
         System.out.println("Start: GMT/UTC Time: " + timestamp);
         String fileName = (String) new InitialContext().lookup("sourceFile");
         path = Paths.get(fileName);
-        chunkSize = Integer.parseInt(chunkSizeProperty);
 
         reader = new BufferedReader(new FileReader(fileName));
 

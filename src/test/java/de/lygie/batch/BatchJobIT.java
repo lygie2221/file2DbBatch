@@ -24,7 +24,12 @@ public class BatchJobIT {
                 Versicherungsnummer vsnr = new Versicherungsnummer();
                 vsnr.generateRandomVersicherungsnummer();
                 //writer.write(vsnr.getVsnr());
-                writer.write("i:" + i);
+                writer.write("i:" + i
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer())
+                ;
                 writer.newLine();  // Fügt einen Zeilenumbruch hinzu
             }
         } catch (IOException e) {

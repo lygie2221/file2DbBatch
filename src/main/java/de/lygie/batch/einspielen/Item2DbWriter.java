@@ -1,9 +1,9 @@
-package de.lygie.batch;
+package de.lygie.batch.einspielen;
 
-import de.lygie.batch.Model.Versicherungsnummer;
-
+import javax.batch.api.BatchProperty;
 import javax.batch.api.chunk.ItemWriter;
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -20,6 +20,18 @@ public class Item2DbWriter implements ItemWriter {
 
     Connection conn;
 
+    @Inject
+    @BatchProperty(name = "verfahren")
+    private String verfahren;
+
+    @Inject
+    @BatchProperty(name = "liefernummer")
+    private String liefernummer;
+
+    @Inject
+    @BatchProperty(name = "zieltabelle")
+    private String zieltabelle;
+
     @Override
     public void open(Serializable checkpoint) throws Exception {
 
@@ -27,19 +39,21 @@ public class Item2DbWriter implements ItemWriter {
         DataSource ds = (DataSource) ctx.lookup("jdbc/MySQLDataSource");
         conn = ds.getConnection();
 
-
     }
 
     @Override
     public void writeItems(List<Object> items) throws Exception {
         // Beispielsweise werden die Items in die Konsole ausgegeben
 
+        String tablename = sanitize(zieltabelle);
 
-        String query = "INSERT INTO versicherte (" +
-                "vsnr," +
-                "sn" +
+        String query = "INSERT INTO " + tablename + " (" +
+                "status," +
+                "verfahren," +
+                "liefernummer," +
+                "daten" +
                 ")" +
-                " VALUES (?,?)";
+                " VALUES (?,?,?,?)";
 
 
         PreparedStatement stmt = null;
@@ -52,9 +66,10 @@ public class Item2DbWriter implements ItemWriter {
         String debug = null;
         for (Object item : items) {
             String element = item.toString();
-            //Versicherungsnummer vsnr = new Versicherungsnummer(element);
-            stmt.setString(1, element);
-            stmt.setString(2, element.substring(0,1));
+            stmt.setInt(1, 0);
+            stmt.setString(2, verfahren);
+            stmt.setString(3, liefernummer);
+            stmt.setString(4, element);
             stmt.addBatch();
         }
 
@@ -71,5 +86,20 @@ public class Item2DbWriter implements ItemWriter {
     @Override
     public void close() throws Exception {
         // Aufräumarbeiten
+    }
+
+    private String sanitize(String str){
+        String data = null;
+        if (str != null && str.length() > 0) {
+            str = str.replace("\\", "\\\\");
+            str = str.replace("'", "\\'");
+            str = str.replace("\0", "\\0");
+            str = str.replace("\n", "\\n");
+            str = str.replace("\r", "\\r");
+            str = str.replace("\"", "\\\"");
+            str = str.replace("\\x1a", "\\Z");
+            data = str;
+        }
+        return data;
     }
 }
