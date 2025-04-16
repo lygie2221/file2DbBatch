@@ -28,6 +28,14 @@ public class BatchJobIT {
                         + vsnr.generateRandomVersicherungsnummer()
                         + vsnr.generateRandomVersicherungsnummer()
                         + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
+                        + vsnr.generateRandomVersicherungsnummer()
                         + vsnr.generateRandomVersicherungsnummer())
                 ;
                 writer.newLine();  // Fügt einen Zeilenumbruch hinzu
