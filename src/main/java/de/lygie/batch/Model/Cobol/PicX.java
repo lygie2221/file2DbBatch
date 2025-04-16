@@ -1,12 +1,11 @@
 package de.lygie.batch.Model.Cobol;
 
-public class PicX {
+public class PicX extends AbstractCobolPicture {
 
-    private int length;
     private String value;
 
     public PicX(int length){
-        this.length = length;
+        super(length);
     }
 
     public String setValue(String value){
