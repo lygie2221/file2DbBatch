@@ -1,19 +1,27 @@
 package de.lygie.batch;
 
+import javax.batch.api.BatchProperty;
 import javax.batch.api.chunk.ItemReader;
 import javax.batch.runtime.context.JobContext;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.naming.InitialContext;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Named
+@Dependent
 public class LargeFileReader implements ItemReader {
 
     @Inject
@@ -21,49 +29,63 @@ public class LargeFileReader implements ItemReader {
 
     Path path;
 
-    private int count = 1;
-    private long anzahlZeilen = 100000;
+    @Inject
+    @BatchProperty(name = "chunkSize")
+    private String chunkSizeProperty;
+    private BufferedReader reader;
+
+    private int chunkSize;
+
+    private long aktuelleZeile;
 
     @Override
     public void open(Serializable checkpoint) throws Exception {
-
+        Instant timestamp = Instant.now();
+        System.out.println("Start: GMT/UTC Time: " + timestamp);
         String fileName = (String) new InitialContext().lookup("sourceFile");
         path = Paths.get(fileName);
+        chunkSize = Integer.parseInt(chunkSizeProperty);
 
-        try (Stream<String> zeilenStream = Files.lines(path, StandardCharsets.UTF_8)) {
-            anzahlZeilen = zeilenStream.count();
-        }catch (Exception e) {
+        reader = new BufferedReader(new FileReader(fileName));
 
+        // Falls ein Checkpoint vorhanden ist, müssen wir die bereits gelesenen Zeilen überspringen.
+        if (checkpoint != null) {
+            aktuelleZeile = (Long) checkpoint;
+            for (long i = 0; i < aktuelleZeile; i++) {
+                // Überspringe die bereits verarbeiteten Zeilen
+                reader.readLine();
+            }
         }
-
-        count = (checkpoint != null) ? (Integer) checkpoint : 1;
     }
 
+    /**
+     * Liest eine einzelne Zeile und erhöht den internen Zähler.
+     * Wenn das Ende der Datei erreicht ist, wird null zurückgegeben,
+     * was dem Batch-Framework signalisiert, dass keine weiteren Items vorliegen.
+     */
     @Override
     public Object readItem() throws Exception {
-
-        List<String> zeilenListe = null;
-        try (Stream<String> stream = Files.lines(path, StandardCharsets.UTF_8)) {
-            zeilenListe = stream.skip(count - 1)  // skip() erwartet die Anzahl der zu überspringenden Elemente
-                    .skip(count)
-                    .limit(10)      // #TODO: junkSize
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-            e.printStackTrace();
+        String line = reader.readLine();
+        if (line != null) {
+            aktuelleZeile++;
+            return line;
         }
-        System.out.println("Zeile: " + count);
-        count=count+10;
-        return (count < anzahlZeilen) ? zeilenListe : null;
+        Instant timestamp = Instant.now();
+        System.out.println("Ende: GMT/UTC Time: " + timestamp);
+        return null;
     }
+
 
     @Override
     public Serializable checkpointInfo() throws Exception {
         // Gibt den aktuellen Zählerstand als Checkpoint zurück
-        return count;
+        return aktuelleZeile;
     }
 
     @Override
     public void close() throws Exception {
-        // Ressourcenfreigabe falls notwendig
+        if (reader != null) {
+            reader.close();
+        }
     }
 }

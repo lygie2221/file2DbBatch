@@ -1,7 +1,12 @@
 package de.lygie.batch;
 
 import javax.batch.api.chunk.ItemProcessor;
+import javax.enterprise.context.Dependent;
+import javax.inject.Named;
+import java.time.Instant;
 
+@Named
+@Dependent
 public class LargeFile2DBProcessor implements ItemProcessor {
 
     @Override

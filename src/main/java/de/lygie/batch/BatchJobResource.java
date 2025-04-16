@@ -6,6 +6,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.Properties;
 
 @Path("batch")
 public class BatchJobResource {
@@ -24,9 +25,13 @@ public class BatchJobResource {
     @Path("startJob2")
     @Produces(MediaType.TEXT_PLAIN)
     public String startJob2() {
+
+        Properties jobParams = new Properties();
+        jobParams.setProperty("chunkSize", "10");
+
         // Ruft den JobOperator ab und startet den Batch-Job (Jobname entspricht dem in der Job-Definition)
         JobOperator jobOperator = BatchRuntime.getJobOperator();
-        long executionId = jobOperator.start("import-job2", null);
+        long executionId = jobOperator.start("import-job2", jobParams);
         return "Batch-Job gestartet mit execution id: " + executionId;
     }
 }

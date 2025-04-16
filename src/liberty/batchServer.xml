@@ -7,11 +7,11 @@
         <feature>batch-1.0</feature>
         <feature>jndi-1.0</feature>
         <feature>jdbc-4.2</feature>
-        <!-- Weitere Features wie CDI können bei Bedarf ergänzt werden -->
+        <feature>cdi-2.0</feature>
     </featureManager>
 
     <library id="MySQLLib">
-        <fileset dir="${server.config.dir}/lib" includes="mysql-connector-java-8.0.28.jar"/>
+        <fileset dir="${server.config.dir}/lib" includes="mysql-connector-java-8.0.32.jar"/>
     </library>
 
     <!-- DataSource definieren -->

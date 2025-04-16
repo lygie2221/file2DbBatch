@@ -16,6 +16,16 @@ public class Versicherungsnummer {
     private final int min= 1;
     private final int max= 99;
 
+    public Versicherungsnummer(){
+
+    }
+
+    public Versicherungsnummer(String vsnr) {
+        this.vsnr = vsnr;
+        sn = vsnr.substring(10,11).toCharArray();
+    }
+
+
 
 
     public String generateRandomVersicherungsnummer(){

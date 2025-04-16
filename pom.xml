@@ -122,7 +122,7 @@
                   <destFileName>mysql-connector-java-8.0.32.jar</destFileName>
                 </artifactItem>
               </artifactItems>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <outputDirectory>${project.build.directory}/liberty/wlp/usr/servers/batchServer/lib</outputDirectory>
             </configuration>
           </execution>
         </executions>

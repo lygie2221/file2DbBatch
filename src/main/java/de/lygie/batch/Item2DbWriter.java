@@ -1,6 +1,10 @@
 package de.lygie.batch;
 
+import de.lygie.batch.Model.Versicherungsnummer;
+
 import javax.batch.api.chunk.ItemWriter;
+import javax.enterprise.context.Dependent;
+import javax.inject.Named;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
@@ -10,6 +14,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+@Named
+@Dependent
 public class Item2DbWriter implements ItemWriter {
 
     Connection conn;
@@ -19,7 +25,7 @@ public class Item2DbWriter implements ItemWriter {
 
         Context ctx = new InitialContext();
         DataSource ds = (DataSource) ctx.lookup("jdbc/MySQLDataSource");
-        Connection conn = ds.getConnection();
+        conn = ds.getConnection();
 
 
     }
@@ -28,10 +34,12 @@ public class Item2DbWriter implements ItemWriter {
     public void writeItems(List<Object> items) throws Exception {
         // Beispielsweise werden die Items in die Konsole ausgegeben
 
+
         String query = "INSERT INTO versicherte (" +
-                "vsn," +
+                "vsnr," +
+                "sn" +
                 ")" +
-                " VALUES (?)";
+                " VALUES (?,?)";
 
 
         PreparedStatement stmt = null;
@@ -41,10 +49,15 @@ public class Item2DbWriter implements ItemWriter {
             throw new RuntimeException(e);
         }
 
+        String debug = null;
         for (Object item : items) {
-            stmt.setString(1, item.toString());
+            String element = item.toString();
+            //Versicherungsnummer vsnr = new Versicherungsnummer(element);
+            stmt.setString(1, element);
+            stmt.setString(2, element.substring(0,1));
             stmt.addBatch();
         }
+
         stmt.executeBatch();
         stmt.close();
     }

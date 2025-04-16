@@ -23,7 +23,8 @@ public class BatchJobIT {
             for (int i = 1; i <= 100000; i++) {
                 Versicherungsnummer vsnr = new Versicherungsnummer();
                 vsnr.generateRandomVersicherungsnummer();
-                writer.write(vsnr.getVsnr());
+                //writer.write(vsnr.getVsnr());
+                writer.write("i:" + i);
                 writer.newLine();  // Fügt einen Zeilenumbruch hinzu
             }
         } catch (IOException e) {
