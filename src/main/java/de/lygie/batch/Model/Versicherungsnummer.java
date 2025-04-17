@@ -1,9 +1,13 @@
 package de.lygie.batch.Model;
 
+import de.lygie.batch.Model.Cobol.AbstractCobolPicture;
+import de.lygie.batch.Model.Cobol.PicX;
+
 import java.util.Random;
 
-public class Versicherungsnummer {
+public class Versicherungsnummer extends PicX {
     private String vsnr;
+    private String value;
 
     private char[] bereich = {'0','0'};
     private char[] tt = {'0','0'};
@@ -17,10 +21,17 @@ public class Versicherungsnummer {
     private final int max= 99;
 
     public Versicherungsnummer(){
-
+        super(12);
     }
 
+    public Versicherungsnummer(int length){
+        super(length);
+    }
+
+
     public Versicherungsnummer(String vsnr) {
+        super(12);
+        super.setValue(vsnr);
         this.vsnr = vsnr;
         sn = vsnr.substring(10,11).toCharArray();
     }

@@ -1,8 +1,16 @@
 package de.lygie.batch.Model.Cobol;
 
-public class PicX extends AbstractCobolPicture {
+public class PicX extends AbstractCobolPicture implements ICobolPicture {
+
+    private String[] validValues;
 
     private String value;
+
+    public PicX(int length, String[] validValues) {
+        super(length);
+        this.validValues = validValues;
+    }
+
 
     public PicX(int length){
         super(length);
@@ -38,6 +46,7 @@ public class PicX extends AbstractCobolPicture {
     public void setLength(int length) {
         this.length = length;
     }
+    
 
     public static String padRight(String s, int n) {
         return String.format("%-" + n + "s", s);
