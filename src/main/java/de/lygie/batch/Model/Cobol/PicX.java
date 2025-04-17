@@ -39,16 +39,11 @@ public class PicX extends AbstractCobolPicture implements ICobolPicture {
     }
 
 
-    public int getLength() {
-        return length;
-    }
 
     public void setLength(int length) {
         this.length = length;
     }
     
 
-    public static String padRight(String s, int n) {
-        return String.format("%-" + n + "s", s);
-    }
+
 }

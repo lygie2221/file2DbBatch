@@ -21,6 +21,9 @@ abstract public class AbstractCobolDatensatz {
                 if (value instanceof PicX) {
                     value = ((PicX) value).getValue();
                 }
+                if (value instanceof Pic9) {
+                    value = ((Pic9) value).toString();
+                }
                 sb.append(value);
             } catch (IllegalAccessException e) {
                 sb.append(field.getName())
@@ -44,6 +47,10 @@ abstract public class AbstractCobolDatensatz {
                 if (value instanceof PicX) {
                     ((PicX) value).setValue(input.substring(pos,pos + ((PicX) value).getLength()));
                     pos = pos + ((PicX) value).getLength();
+                }
+                if (value instanceof Pic9) {
+                    ((Pic9) value).setValue(input.substring(pos,pos + ((Pic9) value).getLength()));
+                    pos = pos + ((Pic9) value).getLength();
                 }
             } catch (IllegalAccessException e) {
             }
