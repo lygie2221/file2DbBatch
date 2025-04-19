@@ -2,6 +2,7 @@ package de.lygie.batch;
 
 import de.lygie.batch.Model.Cobol.PicX;
 import de.lygie.batch.Model.DBNA;
+import de.lygie.batch.helper.StaticHelper;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.Charset;
@@ -14,31 +15,31 @@ public class TestDBNA {
 
         DBNA dbna = new DBNA();
         PicX kennung = new PicX(4);
-        kennung.setValue(randomString(kennung.getLength()));
+        kennung.setValue(StaticHelper.randomString(kennung.getLength()));
         dbna.setKennung(kennung);
 
         PicX fnma = new PicX(30);
-        fnma.setValue(randomString(fnma.getLength()));
+        fnma.setValue(StaticHelper.randomString(fnma.getLength()));
         dbna.setFmna(fnma);
 
         PicX vona = new PicX(30);
-        vona.setValue(randomString(vona.getLength()));
+        vona.setValue(StaticHelper.randomString(vona.getLength()));
         dbna.setVona(vona);
 
         PicX vosa = new PicX(30);
-        vosa.setValue(randomString(vosa.getLength()));
+        vosa.setValue(StaticHelper.randomString(vosa.getLength()));
         dbna.setVosa(vosa);
 
         PicX nazu = new PicX(20);
-        nazu.setValue(randomString(nazu.getLength()));
+        nazu.setValue(StaticHelper.randomString(nazu.getLength()));
         dbna.setNazu(nazu);
 
         PicX titel = new PicX(20);
-        titel.setValue(randomString(titel.getLength()));
+        titel.setValue(StaticHelper.randomString(titel.getLength()));
         dbna.setTitel(titel);
 
         PicX kennzAb = new PicX(1);
-        kennzAb.setValue(randomString(kennzAb.getLength()));
+        kennzAb.setValue(StaticHelper.randomString(kennzAb.getLength()));
         dbna.setKennzAb(kennzAb);
 
         System.out.println(dbna.toString());
@@ -47,7 +48,7 @@ public class TestDBNA {
         dbna.setFmna(fnma);
         System.out.println(dbna.toString());
 
-        String testme = randomString(135);
+        String testme = StaticHelper.randomString(135);
         dbna.fromString(testme);
 
         assert(dbna.toString().equals(testme));
@@ -56,16 +57,5 @@ public class TestDBNA {
 
     }
 
-    private String randomString(int length){
-        int leftLimit = 97; // letter 'a'
-        int rightLimit = 122; // letter 'z'
-        Random random = new Random();
-        StringBuilder buffer = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            int randomLimitedInt = leftLimit + (int)
-                    (random.nextFloat() * (rightLimit - leftLimit + 1));
-            buffer.append((char) randomLimitedInt);
-        }
-        return buffer.toString();
-    }
+
 }
