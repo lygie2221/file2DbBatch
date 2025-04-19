@@ -11,6 +11,11 @@ public class PicX extends AbstractCobolPicture implements ICobolPicture {
         this.validValues = validValues;
     }
 
+    public PicX(int length, String value) {
+        super(length);
+        setValue(value);
+    }
+
 
     public PicX(int length){
         super(length);
@@ -35,10 +40,11 @@ public class PicX extends AbstractCobolPicture implements ICobolPicture {
     }
 
     public String getValue(){
+        if(value == null){
+            return padRight("", length);
+        }
         return value;
     }
-
-
 
     public void setLength(int length) {
         this.length = length;

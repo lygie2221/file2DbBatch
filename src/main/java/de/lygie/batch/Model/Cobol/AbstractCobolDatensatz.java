@@ -1,6 +1,11 @@
 package de.lygie.batch.Model.Cobol;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * eine Besonderheit bei COBOL das Zusammenspiel mit
@@ -31,14 +36,7 @@ abstract public class AbstractCobolDatensatz {
             field.setAccessible(true);
             try {
                 Object value = field.get(this);
-                // Falls das Feld eine Instanz von PicX ist, gebe dessen inhaltlichen Wert aus
-                if (value instanceof PicX) {
-                    value = ((PicX) value).getValue();
-                }
-                if (value instanceof Pic9) {
-                    value = ((Pic9) value).toString();
-                }
-                sb.append(value);
+                appendStringValue(value, sb);
             } catch (IllegalAccessException e) {
                 sb.append(field.getName())
                         .append("=ACCESS_ERROR, ");
@@ -47,29 +45,198 @@ abstract public class AbstractCobolDatensatz {
         return sb.toString();
     }
 
+
+    private void appendStringValue(Object value,StringBuilder sb){
+        // @TODO: eventuell Null-Werte anders behandeln
+        if(null == value){
+            sb.append("");
+            return;
+        }
+        if (value instanceof PicX) {
+            value = ((PicX) value).getValue();
+            sb.append(value);
+            return;
+
+        }
+        if (value instanceof Pic9) {
+            value = value.toString();
+            sb.append(value);
+            return;
+
+        }
+        if (value instanceof Object[]) {
+            for (Object o : (Object[]) value) {
+                appendStringValue(o,sb);
+            }
+            return;
+        }
+        // 1) Jegliche Art von Array (Objekt- oder Primitiv‑Array)
+        Class<?> clazz = value.getClass();
+        if (clazz.isArray()) {
+            int length = Array.getLength(value);
+            for (int i = 0; i < length; i++) {
+                Object elem = Array.get(value, i);
+                appendStringValue(elem, sb);
+            }
+            return;
+        }
+
+        // 2) Alle Collections (z.B. ArrayList, LinkedList, …)
+        if (value instanceof Collection<?>) {
+            Collection<?> coll = (Collection<?>) value;
+            for (Object o : coll) {
+                appendStringValue(o, sb);
+            }
+            return;
+        }
+
+        // 3) Alles andere einfach per toString()
+        sb.append(value.toString());
+
+    }
+
     public void fromString(String input){
         int pos=0;
         Class<?> clazz = this.getClass();
         // Holt alle deklarierten Felder der aktuellen Klasse
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
-            // Zugriff auch auf private Felder erlauben
             field.setAccessible(true);
             try {
                 Object value = field.get(this);
-                // Falls das Feld eine Instanz von PicX ist, gebe dessen inhaltlichen Wert aus
-                if (value instanceof PicX) {
-                    ((PicX) value).setValue(input.substring(pos,pos + ((PicX) value).getLength()));
-                    pos = pos + ((PicX) value).getLength();
-                }
-                if (value instanceof Pic9) {
-                    ((Pic9) value).setValue(input.substring(pos,pos + ((Pic9) value).getLength()));
-                    pos = pos + ((Pic9) value).getLength();
-                }
+                pos = parseValue(value, input, pos);
             } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
         }
     }
+
+    private int parseValue(Object value, String input, int pos) {
+        if (value == null) {
+            return pos;
+        }
+
+        // 1) PicX
+        if (value instanceof PicX) {
+            PicX pic = (PicX) value;
+            int len = pic.getLength();
+            pic.setValue(input.substring(pos, pos + len));
+            return pos + len;
+        }
+
+        // 2) Pic9
+        if (value instanceof Pic9) {
+            Pic9 pic = (Pic9) value;
+            int len = pic.getLength();
+            pic.setValue(input.substring(pos, pos + len));
+            return pos + len;
+        }
+
+        Class<?> cls = value.getClass();
+
+        // 3) Array (Objekt- und Primitiv-Array)
+        if (cls.isArray()) {
+            int length = Array.getLength(value);
+            System.out.println("length: " + length);
+            for (int i = 0; i < length; i++) {
+                Object elem = Array.get(value, i);
+                if(null != elem){
+                    elem=java.lang.reflect.Array.newInstance(cls, 0).getClass();
+                    ((AbstractCobolDatensatz) elem).fromString(input);
+                    Array.set(value,i,elem);
+                }
+                pos = pos+60;
+            }
+            return pos;
+        }
+
+        // 4) Collection (z.B. ArrayList, LinkedList, ...)
+        if (value instanceof Collection<?>) {
+            for (Object elem : (Collection<?>) value) {
+                pos = parseValue(elem, input, pos);
+            }
+            return pos;
+        }
+
+
+        // 6) Fallback: weglassen oder Exception werfen
+        return pos;
+    }
+
+
+    public int fromCobolString(String input, int pos, int level) {
+        Class<?> clazz = this.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        if (level > 2) {
+            return pos;
+        }
+        if (input.length() <= pos) {
+            return pos;
+        }
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                Class<?> type = field.getType();
+                Object value = field.get(this);
+
+                // 1) PicX
+                if (PicX.class.isAssignableFrom(type)) {
+                    PicX pic = (PicX) value;
+                    int len = pic.getLength();
+                    pic.setValue(input.substring(pos, pos + len));
+                    pos += len;
+                }
+                // 2) Pic9
+                else if (Pic9.class.isAssignableFrom(type)) {
+                    Pic9 pic = (Pic9) value;
+                    int len = pic.getLength();
+                    pic.setValue(input.substring(pos, pos + len));
+                    pos += len;
+                }
+                // 3) Array von Datensätzen
+                else if (type.isArray()
+                        && AbstractCobolDatensatz.class.isAssignableFrom(type.getComponentType())) {
+                    Object[] arr = (Object[]) value;
+                    // Falls noch nicht angelegt, erstelle das Array‑Objekt
+                    if (arr == null) {
+                        int length = Array.getLength(value);
+                        arr = (Object[]) Array.newInstance(type.getComponentType(), length);
+                        field.set(this, arr);
+                    }
+                    level = level+1;
+                    for (int i = 0; i < arr.length; i++) {
+                        // Falls Element noch null, instanziere
+                        if (arr[i] == null) {
+                            arr[i] = type.getComponentType().newInstance();
+                        }
+                        // rekursiver Aufruf auf das Unter‑Objekt
+                        pos = ((AbstractCobolDatensatz) arr[i]).fromCobolString(input, pos, level);
+                    }
+                }
+                // 4) Collection von Datensätzen
+                else if (value instanceof java.util.Collection<?>) {
+                    java.util.Collection<?> coll = (java.util.Collection<?>) value;
+                    // Hier unterscheiden, ob Du schon Einträge hast
+                    level = level+1;
+
+                    for (Object elem : coll) {
+                        if (elem == null) {
+                            // Instantiere neuen Eintrag (sofern nötig)
+                            elem = this.getClass().getComponentType().newInstance();
+                            // ...füge es zur Collection hinzu (Casting nötig)
+                            ((java.util.Collection<Object>) coll).add(elem);
+                        }
+                        pos = ((AbstractCobolDatensatz) elem).fromCobolString(input, pos, level);
+                    }
+                }
+                // 5) alles sonst: ignorieren oder Fehler
+            } catch (Exception e) {
+            }
+        }
+        return pos;
+    }
+
+
 
 
 }
