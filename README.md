@@ -14,3 +14,6 @@ mvn liberty:run
 ```
 mvn liberty:dev
 ```
+
+## screencast
+https://projekte.lygie.de/datenimport_in_verteilten_systemen.mp4
