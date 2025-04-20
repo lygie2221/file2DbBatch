@@ -1,5 +1,7 @@
 package de.lygie.batch.einspielen;
 
+import de.lygie.batch.Model.DBNA;
+
 import javax.batch.api.BatchProperty;
 import javax.batch.api.chunk.ItemWriter;
 import javax.enterprise.context.Dependent;
@@ -47,14 +49,8 @@ public class Dbna2DbWriter implements ItemWriter {
 
         String tablename = sanitize(zieltabelle);
 
-        String query = "INSERT INTO " + tablename + " (" +
-                "status," +
-                "verfahren," +
-                "liefernummer," +
-                "daten" +
-                ")" +
-                " VALUES (?,?,?,?)";
-
+        DBNA dbna = new DBNA();
+        String query = dbna.getInsertQuery("DBNA");
 
         PreparedStatement stmt = null;
         try {
@@ -63,17 +59,14 @@ public class Dbna2DbWriter implements ItemWriter {
             throw new RuntimeException(e);
         }
 
-        String debug = null;
         for (Object item : items) {
-            String element = item.toString();
-            stmt.setInt(1, 0);
-            stmt.setString(2, verfahren);
-            stmt.setString(3, liefernummer);
-            stmt.setString(4, element);
-            stmt.addBatch();
+            DBNA dbnaItem = new DBNA();
+            dbnaItem.fromString((String) item);
+            dbnaItem.bindParamsAndAdBatch(stmt);
         }
 
         stmt.executeBatch();
+
         stmt.close();
     }
 

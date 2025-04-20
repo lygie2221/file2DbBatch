@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job id="import-job2"
+<job id="import-job3"
      xmlns="http://xmlns.jcp.org/xml/ns/javaee"
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
@@ -13,7 +13,7 @@
                 </properties>
             </reader>
             <processor ref="largeFile2DBProcessor"/>
-            <writer ref="item2DbWriter">
+            <writer ref="dbna2DbWriter">
                 <properties>
                     <property name="verfahren" value="testverfahren" />
                     <property name="liefernummer" value="20250101" />

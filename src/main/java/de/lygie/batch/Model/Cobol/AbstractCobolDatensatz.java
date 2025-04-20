@@ -3,6 +3,9 @@ package de.lygie.batch.Model.Cobol;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -62,7 +65,6 @@ abstract public class AbstractCobolDatensatz {
             value = value.toString();
             sb.append(value);
             return;
-
         }
         if (value instanceof Object[]) {
             for (Object o : (Object[]) value) {
@@ -137,7 +139,6 @@ abstract public class AbstractCobolDatensatz {
         // 3) Array (Objekt- und Primitiv-Array)
         if (cls.isArray()) {
             int length = Array.getLength(value);
-            System.out.println("length: " + length);
             for (int i = 0; i < length; i++) {
                 Object elem = Array.get(value, i);
                 if(null != elem){
@@ -234,6 +235,92 @@ abstract public class AbstractCobolDatensatz {
             }
         }
         return pos;
+    }
+
+    public String getInsertQuery(String tableName){
+        StringBuilder sb = new StringBuilder();
+        sb.append("insert into ").append(tableName).append(" (");
+        Class<?> clazz = this.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        int columns = 0;
+        for (Field field : fields) {
+            // Zugriff auch auf private Felder erlauben
+            field.setAccessible(true);
+            try {
+                Object value = field.get(this);
+                if (value instanceof PicX || value instanceof Pic9) {
+                    sb.append(field.getName()).append(",");
+                    columns++;
+                }
+            } catch (IllegalAccessException e) {
+
+            }
+        }
+        sb.setLength(sb.length() - 1);
+        sb.append(") values (");
+        for (int i = 0; i < columns; i++) {
+            sb.append("?,");
+        }
+        return sb.substring(0, sb.length()-1)+")";
+    }
+
+    public void bindParamsAndAdBatch(PreparedStatement stmt) throws SQLException {
+        Class<?> clazz = this.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        int column = 1;
+        for (Field field : fields) {
+            // Zugriff auch auf private Felder erlauben
+            field.setAccessible(true);
+            try {
+                Object value = field.get(this);
+                if (value instanceof PicX) {
+                    stmt.setString(column++,((PicX) value).getValue());
+                }
+                if (value instanceof Pic9) {
+                    Long val = ((Pic9) value).getValue().longValue();
+                    stmt.setBigDecimal(column++,new BigDecimal(val));
+
+                }
+            } catch (IllegalAccessException e) {
+
+            }
+        }
+        stmt.addBatch();
+    }
+
+
+    public String getDDL(String tableName, String primaryIdField){
+        StringBuilder sb = new StringBuilder();
+        sb.append("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (");
+        if(null != primaryIdField){
+            sb.append(primaryIdField).append(" INT NOT NULL PRIMARY KEY AUTO_INCREMENT,");
+        }
+
+        Class<?> clazz = this.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : fields) {
+            // Zugriff auch auf private Felder erlauben
+            field.setAccessible(true);
+            try {
+                Object value = field.get(this);
+                if (value instanceof PicX) {
+                    sb.append("`");
+                    sb.append(field.getName());
+                    sb.append("` VARCHAR(" );
+                    sb.append(((PicX) value).getLength());
+                    sb.append("),");
+
+                }
+                if (value instanceof Pic9) {
+                    value = value.toString();
+                    sb.append(field.getName()).append(" DECIMAL(" ).append(((Pic9) value).getLength()).append(",0),");
+
+                }
+            } catch (IllegalAccessException e) {
+
+            }
+        }
+        return sb.toString();
     }
 
 

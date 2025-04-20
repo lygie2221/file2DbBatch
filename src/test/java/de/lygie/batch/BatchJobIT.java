@@ -1,6 +1,7 @@
 package de.lygie.batch;
 
 import de.lygie.batch.Model.Versicherungsnummer;
+import de.lygie.batch.helper.StaticHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -21,23 +22,8 @@ public class BatchJobIT {
         String dateiName = "/tmp/input.txt";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(dateiName))) {
             for (int i = 1; i <= 100000; i++) {
-                Versicherungsnummer vsnr = new Versicherungsnummer();
-                vsnr.generateRandomVersicherungsnummer();
                 //writer.write(vsnr.getVsnr());
-                writer.write("i:" + i +":"
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer()
-                        + vsnr.generateRandomVersicherungsnummer())
-                ;
+                writer.write(StaticHelper.randomString(135));
                 writer.newLine();  // Fügt einen Zeilenumbruch hinzu
             }
         } catch (IOException e) {

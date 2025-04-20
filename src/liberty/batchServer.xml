@@ -20,7 +20,7 @@
         <jdbcDriver libraryRef="MySQLLib"/>
         <properties
                 databaseName="arbeitstabelle"
-                serverName="192.168.17.179"
+                serverName="127.0.0.1"
                 portNumber="3306"
                 user="lygie"
                 password="lygie"/>

@@ -51,6 +51,10 @@ public class TestDBNA {
         String testme = StaticHelper.randomString(135);
         dbna.fromString(testme);
 
+        System.out.println(dbna.getDDL("DBNA","id"));
+        System.out.println(dbna.getInsertQuery("DBNA"));
+
+
         assert(dbna.toString().equals(testme));
 
         assert(true);
