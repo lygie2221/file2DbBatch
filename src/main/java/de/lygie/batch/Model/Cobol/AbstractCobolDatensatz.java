@@ -48,7 +48,12 @@ abstract public class AbstractCobolDatensatz {
         return sb.toString();
     }
 
-
+    /**
+     * fügt den aktuell zu schreibenden Wert
+     * für die Methode toString hinzu
+     * @param value
+     * @param sb
+     */
     private void appendStringValue(Object value,StringBuilder sb){
         // @TODO: eventuell Null-Werte anders behandeln
         if(null == value){
@@ -97,6 +102,12 @@ abstract public class AbstractCobolDatensatz {
 
     }
 
+    /**
+     * erstellt aus resalisierten (toString) objekten
+     * Java-Datenstukturen
+     * die Implementierung für Arrays oder Listen ist noch fehlerhaft
+     * @param input
+     */
     public void fromString(String input){
         int pos=0;
         Class<?> clazz = this.getClass();
@@ -164,7 +175,14 @@ abstract public class AbstractCobolDatensatz {
         return pos;
     }
 
-
+    /**
+     * kan aus serialisieren Objekten wieder Cobol-Datenstukturen erstellen
+     * anders als fromString() unterstützt diese Methode auch Arrays
+     * @param input
+     * @param pos
+     * @param level
+     * @return
+     */
     public int fromCobolString(String input, int pos, int level) {
         Class<?> clazz = this.getClass();
         Field[] fields = clazz.getDeclaredFields();
@@ -237,6 +255,12 @@ abstract public class AbstractCobolDatensatz {
         return pos;
     }
 
+    /**
+     * einfache ORM-Logik um COBOL-Datenstukturen
+     * in eine relationale Datenbank einzufügen
+     * @param tableName
+     * @return
+     */
     public String getInsertQuery(String tableName){
         StringBuilder sb = new StringBuilder();
         sb.append("insert into ").append(tableName).append(" (");
@@ -264,6 +288,11 @@ abstract public class AbstractCobolDatensatz {
         return sb.substring(0, sb.length()-1)+")";
     }
 
+    /**
+     * Werte binden und einem Batch hinzufügen
+     * @param stmt
+     * @throws SQLException
+     */
     public void bindParamsAndAdBatch(PreparedStatement stmt) throws SQLException {
         Class<?> clazz = this.getClass();
         Field[] fields = clazz.getDeclaredFields();
@@ -288,7 +317,14 @@ abstract public class AbstractCobolDatensatz {
         stmt.addBatch();
     }
 
-
+    /**
+     * Kline Hilfsmethode um aus eines bestehenden Datenstuktur
+     * einen Vorschlag für ein DDL zu erzeugen.
+     * Getestet ist der Syntax nur mit MySQL
+     * @param tableName
+     * @param primaryIdField
+     * @return
+     */
     public String getDDL(String tableName, String primaryIdField){
         StringBuilder sb = new StringBuilder();
         sb.append("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (");
