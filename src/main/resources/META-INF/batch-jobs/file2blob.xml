@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job id="import-job3"
+     xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                         http://xmlns.jcp.org/xml/ns/javaee/jobXML_1_0.xsd"
+     version="1.0">
+    <step id="chunkStep">
+        <chunk item-count="#{jobParameters['chunkSize']}" retry-limit="0">
+            <reader ref="largeFileReader">
+                <properties>
+                    <property name="chunkSize" value="#{jobParameters['chunkSize']}" />
+                </properties>
+            </reader>
+            <processor ref="largeFile2DBProcessor"/>
+            <writer ref="dbna2DbWriter">
+                <properties>
+                    <property name="verfahren" value="testverfahren" />
+                    <property name="liefernummer" value="20250101" />
+                    <property name="zieltabelle" value="dbna" />
+                </properties>
+            </writer>
+        </chunk>
+    </step>
+</job>
