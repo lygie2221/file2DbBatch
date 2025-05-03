@@ -48,4 +48,16 @@ public class BatchJobResource {
         long executionId = jobOperator.start("import-job3", jobParams);
         return "Batch-Job gestartet mit execution id: " + executionId;
     }
+
+    @GET
+    @Path("blobImport")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String blobImport() {
+
+
+        // Ruft den JobOperator ab und startet den Batch-Job (Jobname entspricht dem in der Job-Definition)
+        JobOperator jobOperator = BatchRuntime.getJobOperator();
+        long executionId = jobOperator.start("file2blob", null);
+        return "Batch-Job gestartet mit execution id: " + executionId;
+    }
 }
