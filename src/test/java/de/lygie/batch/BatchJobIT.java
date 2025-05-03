@@ -1,5 +1,7 @@
 package de.lygie.batch;
 
+import de.lygie.batch.Model.Cobol.PicX;
+import de.lygie.batch.Model.DBNA;
 import de.lygie.batch.Model.Versicherungsnummer;
 import de.lygie.batch.helper.StaticHelper;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,9 +28,46 @@ public class BatchJobIT {
                 writer.write(StaticHelper.randomString(135));
                 writer.newLine();  // Fügt einen Zeilenumbruch hinzu
             }
+
+            DBNA dbna = new DBNA();
+            PicX kennung = new PicX(4);
+            kennung.setValue(StaticHelper.randomString(kennung.getLength()));
+            dbna.setKennung(kennung);
+
+            PicX fnma = new PicX(30);
+            fnma.setValue("Dampf");
+            dbna.setFmna(fnma);
+
+            PicX vona = new PicX(30);
+            vona.setValue("Hans");
+            dbna.setVona(vona);
+
+            PicX vosa = new PicX(30);
+            vosa.setValue(StaticHelper.randomString(vosa.getLength()));
+            dbna.setVosa(vosa);
+
+            PicX nazu = new PicX(20);
+            nazu.setValue(StaticHelper.randomString(nazu.getLength()));
+            dbna.setNazu(nazu);
+
+            PicX titel = new PicX(20);
+            titel.setValue(StaticHelper.randomString(titel.getLength()));
+            dbna.setTitel(titel);
+
+            PicX kennzAb = new PicX(1);
+            kennzAb.setValue(StaticHelper.randomString(kennzAb.getLength()));
+            dbna.setKennzAb(kennzAb);
+
+            writer.write(dbna.toString());
+            writer.newLine();
+
         } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+
+
+
+
     }
 
     @Test

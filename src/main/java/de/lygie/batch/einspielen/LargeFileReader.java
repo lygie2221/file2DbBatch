@@ -25,6 +25,8 @@ public class LargeFileReader implements ItemReader {
 
     private BufferedReader reader;
 
+    private boolean hasNext;
+    String nextLine;
     private long aktuelleZeile;
 
     @Override
@@ -44,6 +46,8 @@ public class LargeFileReader implements ItemReader {
                 reader.readLine();
             }
         }
+        nextLine = reader.readLine();
+
     }
 
     /**
@@ -53,9 +57,11 @@ public class LargeFileReader implements ItemReader {
      */
     @Override
     public Object readItem() throws Exception {
-        String line = reader.readLine();
-        if (line != null) {
+        String line = nextLine;
+        nextLine = reader.readLine();
+        if (nextLine != null) {
             aktuelleZeile++;
+            hasNext=true;
             return line;
         }
         Instant timestamp = Instant.now();
