@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!-- Beispiel-XML-Datei -->
+        <!-- Wurzel-Element -->
+<Root>
+    <!-- Hauptelement mit Attribut "ID" -->
+    <Person ID="123">
+        <!-- Eigenschaften des Elements -->
+        <Name>Max Mustermann</Name>
+        <Alter>30</Alter>
+
+        <!-- Liste von Adressen -->
+        <Adressen>
+            <!-- Eintrag in der Liste -->
+            <Adresse>
+                <!-- Straße und Hausnummer -->
+                <Straße>Mustergarten 12</Straße>
+                <!-- Postleitzahl und Ort -->
+                <PLZ>12345</PLZ>
+                <Ort>Köln</Ort>
+            </Adresse>
+        </Adressen>
+    </Person>
+</Root>
+
+
+
+
+
+
+

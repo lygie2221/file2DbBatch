@@ -45,6 +45,7 @@ public class BlobImporter implements Batchlet {
         BlobEntry entry = new BlobEntry(111111, 12345);
         File tempfile = createTempEntryXml(entry);
         File zipFile = createZipFile(tempfile);
+        addResourceToZip(zipFile, "example.xml");
         insertIntoBlob(entry, zipFile);
 
         return "";
@@ -146,6 +147,36 @@ public class BlobImporter implements Batchlet {
         System.out.println("Temporäre XML-Datei erzeugt: " + tempFile.getAbsolutePath());
         return tempFile;
     }
+
+    public static void addResourceToZip(File zipFile, String filename) throws IOException {
+        // 1. Lade die Ressource als InputStream
+        try (InputStream resourceStream =
+                     BlobImporter.class.getResourceAsStream("/static_xml/" + filename)) {
+            if (resourceStream == null) {
+                throw new FileNotFoundException("Ressource /xml/meineDatei.xml nicht gefunden!");
+            }
+
+
+            try (ZipOutputStream zos = new ZipOutputStream(
+                    new FileOutputStream(zipFile))) {
+
+                // 4. Definiere einen neuen Eintrag im ZIP
+                ZipEntry entry = new ZipEntry(filename + ".xml");
+                zos.putNextEntry(entry);
+
+                // 5. Kopiere alle Bytes von der Ressource in den Zip-Eintrag
+                byte[] buffer = new byte[4096];
+                int len;
+                while ((len = resourceStream.read(buffer)) > 0) {
+                    zos.write(buffer, 0, len);
+                }
+
+                // 6. schließen des aktuellen Eintrags
+                zos.closeEntry();
+            }
+        }
+    }
+
 
     private void insertIntoBlob(BlobEntry entry, File zipFile) throws SQLException, IOException {
         String sql = "INSERT INTO myblob (id, lfnr, myblob) " +
