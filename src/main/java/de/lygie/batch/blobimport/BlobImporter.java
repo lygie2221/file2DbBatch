@@ -48,7 +48,7 @@ public class BlobImporter implements Batchlet {
         BlobEntry entry = new BlobEntry(111111, 12345);
         File tempfile = createTempEntryXml(entry);
         File zipFile = createZipFile(tempfile);
-        addResourceToZip(zipFile, "example.xml");
+        //addResourceToExistingZip(zipFile, "example.xml");
         insertIntoBlob(entry, zipFile);
 
         return "";
@@ -152,6 +152,71 @@ public class BlobImporter implements Batchlet {
     }
 
     /**
+     * Fügt einer bestehenden ZIP-Datei einen Eintrag aus dem Klassenpfad hinzu.
+     *
+     * @param zipFile       Die bestehende ZIP-Datei, die erweitert werden soll.
+     * @param resourcePath  Pfad zur Ressource im Klassen­pfad, z.B. "xml/meineDatei.xml"
+     * @param entryName     Name (inkl. Pfad) im ZIP, z.B. "data/meineDatei.xml"
+     * @throws IOException
+     */
+    public static void addResourceToExistingZip(File zipFile,
+                                                String resourcePath,
+                                                String entryName)
+            throws IOException {
+        // 1. Ressource als Stream aus dem JAR laden
+        InputStream resourceStream =
+                BlobImporter.class.getClassLoader().getResourceAsStream(resourcePath);
+        if (resourceStream == null) {
+            throw new FileNotFoundException("Ressource '" + resourcePath + "' nicht gefunden!");
+        }
+
+        // 2. Temp-ZIP anlegen
+        File tempZip = File.createTempFile("temp-zip-", ".zip");
+        tempZip.deleteOnExit();
+
+        // 3. Altes ZIP öffnen und neues schreiben
+        try (ZipFile original = new ZipFile(zipFile);
+             ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempZip))) {
+
+            // 3a. Alle bestehenden Einträge kopieren
+            Enumeration<? extends ZipEntry> entries = original.entries();
+            byte[] buffer = new byte[4096];
+            while (entries.hasMoreElements()) {
+                ZipEntry e = entries.nextElement();
+                // Eintrag neu anlegen (Name, ggf. Zeitstempel übernehmen)
+                ZipEntry copyEntry = new ZipEntry(e.getName());
+                copyEntry.setTime(e.getTime());
+                zos.putNextEntry(copyEntry);
+
+                try (InputStream is = original.getInputStream(e)) {
+                    int len;
+                    while ((len = is.read(buffer)) > 0) {
+                        zos.write(buffer, 0, len);
+                    }
+                }
+                zos.closeEntry();
+            }
+
+            // 3b. Neuen Eintrag aus dem Ressourcen-Stream hinzufügen
+            ZipEntry newEntry = new ZipEntry(entryName);
+            zos.putNextEntry(newEntry);
+            int len;
+            while ((len = resourceStream.read(buffer)) > 0) {
+                zos.write(buffer, 0, len);
+            }
+            resourceStream.close();
+            zos.closeEntry();
+        }
+
+        // 4. Temporäres ZIP übers Original verschieben
+        Files.move(
+                tempZip.toPath(),
+                zipFile.toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING
+        );
+    }
+
+    /**
      * Fügt einer bestehenden ZIP-Datei eine weitere Datei hinzu.
      *
      * @param zipFile     Die bestehende ZIP-Datei, die erweitert werden soll.
@@ -204,7 +269,7 @@ public class BlobImporter implements Batchlet {
     }
 
 
-    public static void addResourceToZip(File zipFile, String filename) throws IOException {
+    public static void addResourceToZip2(File zipFile, String filename) throws IOException {
         // 1. Lade die Ressource als InputStream
         try (InputStream resourceStream =
                      BlobImporter.class.getResourceAsStream("/static_xml/" + filename)) {
