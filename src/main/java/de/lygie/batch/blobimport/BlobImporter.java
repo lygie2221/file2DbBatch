@@ -22,10 +22,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Enumeration;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 @Named
@@ -147,6 +150,59 @@ public class BlobImporter implements Batchlet {
         System.out.println("Temporäre XML-Datei erzeugt: " + tempFile.getAbsolutePath());
         return tempFile;
     }
+
+    /**
+     * Fügt einer bestehenden ZIP-Datei eine weitere Datei hinzu.
+     *
+     * @param zipFile     Die bestehende ZIP-Datei, die erweitert werden soll.
+     * @param fileToAdd   Die Datei, die hinzugefügt werden soll.
+     * @param entryName   Der Name (inkl. Pfad) der Datei im ZIP, z.B. "folder/meineDatei.txt".
+     * @throws IOException
+     */
+    public static void addFileToExistingZip(File zipFile, File fileToAdd, String entryName)
+            throws IOException {
+        // 1. temporäre ZIP-Datei anlegen
+        File tempZip = File.createTempFile("temp-zip-", ".zip");
+        tempZip.deleteOnExit();
+
+        // 2. Altes ZIP öffnen und neuen ZipOutputStream auf Temp-ZIP
+        try (ZipFile original = new ZipFile(zipFile);
+             ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempZip))) {
+
+            // 3. Alle existierenden Einträge kopieren
+            Enumeration<? extends ZipEntry> entries = original.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry e = entries.nextElement();
+                // Den Eintrag neu hinzufügen (inkl. Metadaten)
+                zos.putNextEntry(new ZipEntry(e.getName()));
+                try (InputStream is = original.getInputStream(e)) {
+                    copy(is, zos);
+                }
+                zos.closeEntry();
+            }
+
+            // 4. Den neuen Eintrag hinzufügen
+            ZipEntry newEntry = new ZipEntry(entryName);
+            zos.putNextEntry(newEntry);
+            try (InputStream is = new FileInputStream(fileToAdd)) {
+                copy(is, zos);
+            }
+            zos.closeEntry();
+        }
+
+        // 5. Original ersetzen
+        Files.move(tempZip.toPath(), zipFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    // Hilfsmethode zum Kopieren
+    private static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[4096];
+        int len;
+        while ((len = in.read(buffer)) > 0) {
+            out.write(buffer, 0, len);
+        }
+    }
+
 
     public static void addResourceToZip(File zipFile, String filename) throws IOException {
         // 1. Lade die Ressource als InputStream

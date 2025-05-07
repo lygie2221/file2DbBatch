@@ -2,7 +2,13 @@ package de.lygie.batch.Model.Cobol;
 
 import java.math.BigInteger;
 
+/**
+ * Represents a PIC9 field in a COBOL program.
+ *
+ * @author Your Name
+ */
 public class Pic9 extends AbstractCobolPicture {
+
 
     private int anahlnachkommastellen = 0;
     private int wertnachkommastellen;
