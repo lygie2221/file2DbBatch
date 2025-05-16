@@ -16,6 +16,6 @@ mvn liberty:dev
 ```
 
 ## screencasts
-https://projekte.lygie.de/xml_performancetest.mp4
-https://projekte.lygie.de/xml_performancetest_threads.mp4
-https://projekte.lygie.de/datenimport_in_verteilten_systemen.mp4
+- https://projekte.lygie.de/xml_performancetest.mp4
+- https://projekte.lygie.de/xml_performancetest_threads.mp4
+- https://projekte.lygie.de/datenimport_in_verteilten_systemen.mp4
