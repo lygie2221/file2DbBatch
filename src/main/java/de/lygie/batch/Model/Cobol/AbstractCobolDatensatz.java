@@ -30,17 +30,8 @@ abstract public class AbstractCobolDatensatz {
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
-        // Ermittelt die Laufzeitklasse (z.B. DBNA)
-        Class<?> clazz = this.getClass();
-        // Holt alle deklarierten Felder der aktuellen Klasse
-        Field[] fields = clazz.getDeclaredFields();
-        Arrays.sort(fields, Comparator
-                .comparingInt((Field f) -> {
-                    Order o = f.getAnnotation(Order.class);
-                    return o != null ? o.value() : Integer.MAX_VALUE;
-                })
-                .thenComparing(Field::getName)
-        );
+        Field[] fields = getFields();
+
         for (Field field : fields) {
             // Zugriff auch auf private Felder erlauben
             field.setAccessible(true);
@@ -117,9 +108,7 @@ abstract public class AbstractCobolDatensatz {
      */
     public void fromString(String input){
         int pos=0;
-        Class<?> clazz = this.getClass();
-        // Holt alle deklarierten Felder der aktuellen Klasse
-        Field[] fields = clazz.getDeclaredFields();
+        Field[] fields = getFields();
         for (Field field : fields) {
             field.setAccessible(true);
             try {
@@ -191,8 +180,8 @@ abstract public class AbstractCobolDatensatz {
      * @return
      */
     public int fromCobolString(String input, int pos, int level) {
-        Class<?> clazz = this.getClass();
-        Field[] fields = clazz.getDeclaredFields();
+        Field[] fields = getFields();
+
         if (level > 2) {
             return pos;
         }
@@ -272,7 +261,7 @@ abstract public class AbstractCobolDatensatz {
         StringBuilder sb = new StringBuilder();
         sb.append("insert into ").append(tableName).append(" (");
         Class<?> clazz = this.getClass();
-        Field[] fields = clazz.getDeclaredFields();
+        Field[] fields = getFields();
         int columns = 0;
         for (Field field : fields) {
             // Zugriff auch auf private Felder erlauben
@@ -301,8 +290,7 @@ abstract public class AbstractCobolDatensatz {
      * @throws SQLException
      */
     public void bindParamsAndAdBatch(PreparedStatement stmt) throws SQLException {
-        Class<?> clazz = this.getClass();
-        Field[] fields = clazz.getDeclaredFields();
+        Field[] fields = getFields();
         int column = 1;
         for (Field field : fields) {
             // Zugriff auch auf private Felder erlauben
@@ -366,6 +354,21 @@ abstract public class AbstractCobolDatensatz {
         return sb.toString();
     }
 
+    private Field[] getFields() {
+        Class<?> clazz = this.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        // Karte: Field → ursprünglicher Index
+        Map<Field, Integer> originalIndex = new HashMap<>();
+        for (int i = 0; i < fields.length; i++) {
+            originalIndex.put(fields[i], i);
+        }
+
+        Arrays.sort(fields, Comparator.comparingInt((Field f) -> {
+            Order o = f.getAnnotation(Order.class);
+            return o != null ? o.value() : Integer.MAX_VALUE;
+        }).thenComparing(originalIndex::get));
+        return fields;
+    }
 
 
 
