@@ -1,10 +1,13 @@
 package de.lygie.batch.Model;
 
 import de.lygie.batch.Model.Cobol.AbstractCobolDatensatz;
+import de.lygie.batch.helper.Order;
 
 public class DEUEV extends AbstractCobolDatensatz {
 
+    @Order(1)
     private DSME dsme = new DSME();
+    @Order(2)
     private DBNA dbna = new DBNA();
 
 

@@ -1,14 +1,14 @@
 package de.lygie.batch.Model.Cobol;
 
+import de.lygie.batch.helper.Order;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * eine Besonderheit bei COBOL das Zusammenspiel mit
@@ -34,6 +34,13 @@ abstract public class AbstractCobolDatensatz {
         Class<?> clazz = this.getClass();
         // Holt alle deklarierten Felder der aktuellen Klasse
         Field[] fields = clazz.getDeclaredFields();
+        Arrays.sort(fields, Comparator
+                .comparingInt((Field f) -> {
+                    Order o = f.getAnnotation(Order.class);
+                    return o != null ? o.value() : Integer.MAX_VALUE;
+                })
+                .thenComparing(Field::getName)
+        );
         for (Field field : fields) {
             // Zugriff auch auf private Felder erlauben
             field.setAccessible(true);
