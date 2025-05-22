@@ -32,4 +32,34 @@ while IFS= read -r line; do
     OUTPUT_FILE="${CLASS_NAME}.java"
   elif [[ "$line" =~ ^05[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]+pic[[:space:]]+(.*)\. ]]; then
     RAW_ATTR="${BASH_REMATCH[1]}"
-    ATTR
+    ATTR_NAME=$(to_camel_case "$RAW_ATTR")
+    PIC_TYPE=$(echo "${BASH_REMATCH[2]}" | tr '[:upper:]' '[:lower:]')
+
+    if [[ "$PIC_TYPE" =~ x\(([0-9]+)\) ]]; then
+      LEN="${BASH_REMATCH[1]}"
+      JAVA_FIELDS+="    PicX ${ATTR_NAME} = new PicX(${LEN});\n"
+    elif [[ "$PIC_TYPE" =~ 9\(([0-9]+)\) ]]; then
+      LEN="${BASH_REMATCH[1]}"
+      JAVA_FIELDS+="    Pic9 ${ATTR_NAME} = new Pic9(${LEN});\n"
+    elif [[ "$PIC_TYPE" =~ \+?9+\.9+ ]]; then
+      IFS='.' read -r INT_PART DEC_PART <<< "$PIC_TYPE"
+      INT_LEN=$(echo "$INT_PART" | tr -cd '9' | wc -c)
+      DEC_LEN=$(echo "$DEC_PART" | tr -cd '9' | wc -c)
+      JAVA_FIELDS+="    Pic9 ${ATTR_NAME} = new Pic9(${INT_LEN}, ${DEC_LEN});\n"
+    fi
+  fi
+done < "$INPUT_FILE"
+
+if [[ -z "$CLASS_NAME" ]]; then
+  echo "Keine gültige Copybook-Struktur gefunden."
+  exit 1
+fi
+
+# Java-Datei schreiben
+{
+  echo "class ${CLASS_NAME} {"
+  echo -e "${JAVA_FIELDS}"
+  echo "}"
+} > "$OUTPUT_FILE"
+
+echo "Konvertierung abgeschlossen: ${OUTPUT_FILE}"
