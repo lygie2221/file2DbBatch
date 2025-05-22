@@ -19,16 +19,26 @@ public class AbstractCobolPicture {
     }
 
     /**
-     * @param s Zeichenkette
-     * @param n anzahl der anzuhängenden Zeichen
+     * @param input Zeichenkette
+     * @param length anzahl der anzuhängenden Zeichen
      * @return
      *
      * die Funktion PAD-Right ist vermutlich nur bei PICX sinnvoll einzusetzen.
      * PIC9, also dezimalzahlen verändern bei Padding nach rechts ihren Wert und sind
      * in COBOL auch linksbündig ausgerichtet.
      */
-    public static String padRight(String s, int n) {
-        return String.format("%" + n + "s", s);
+    public static String padRight(String input, int length) {
+        if (input == null) {
+            input = "";
+        }
+        if (input.length() >= length) {
+            return input;
+        }
+        StringBuilder sb = new StringBuilder(input);
+        while (sb.length() < length) {
+            sb.append(' ');
+        }
+        return sb.toString();
     }
 
     /**

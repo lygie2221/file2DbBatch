@@ -36,7 +36,8 @@ public class PicX extends AbstractCobolPicture implements ICobolPicture {
 
     @Override
     public String toString() {
-        return value;
+
+        return padRight(value, length);
     }
 
     public String getValue(){
