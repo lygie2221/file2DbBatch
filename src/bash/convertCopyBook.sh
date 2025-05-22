@@ -24,35 +24,37 @@ CLASS_NAME=""
 JAVA_FIELDS=""
 
 while IFS= read -r line; do
-  # Trim leading/trailing whitespace
   line=$(echo "$line" | sed 's/^[ \t]*//;s/[ \t]*$//')
 
-  # Match 01 <name>.
   if [[ "$line" =~ ^01[[:space:]]+([a-zA-Z0-9_-]+)\. ]]; then
     RAW_CLASS="${BASH_REMATCH[1]}"
     CLASS_NAME=$(to_camel_case "$RAW_CLASS")
     OUTPUT_FILE="${CLASS_NAME}.java"
 
-  # Match 05 <name> pic ...
   elif [[ "$line" =~ ^05[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]+[pP][iI][cC][[:space:]]+(.+)\. ]]; then
     RAW_ATTR="${BASH_REMATCH[1]}"
     ATTR_NAME=$(to_camel_case "$RAW_ATTR")
     PIC_TYPE=$(echo "${BASH_REMATCH[2]}" | tr '[:upper:]' '[:lower:]' | sed 's/[ \t]//g')
 
-    # Match x(n)
+    # X(n)
     if [[ "$PIC_TYPE" =~ ^x\(([0-9]+)\)$ ]]; then
       JAVA_FIELDS+="    PicX ${ATTR_NAME} = new PicX(${BASH_REMATCH[1]});\n"
 
-    # Match 9(n)
+    # XX, XXX usw.
+    elif [[ "$PIC_TYPE" =~ ^x+$ ]]; then
+      LEN=$(echo "$PIC_TYPE" | tr -cd 'x' | wc -c)
+      JAVA_FIELDS+="    PicX ${ATTR_NAME} = new PicX(${LEN});\n"
+
+    # 9(n)
     elif [[ "$PIC_TYPE" =~ ^9\(([0-9]+)\)$ ]]; then
       JAVA_FIELDS+="    Pic9 ${ATTR_NAME} = new Pic9(${BASH_REMATCH[1]});\n"
 
-    # Match plain digits e.g. 99
+    # 99, 9999 usw.
     elif [[ "$PIC_TYPE" =~ ^9+$ ]]; then
       LEN=$(echo "$PIC_TYPE" | tr -cd '9' | wc -c)
       JAVA_FIELDS+="    Pic9 ${ATTR_NAME} = new Pic9(${LEN});\n"
 
-    # Match fixed float format e.g. +999999.99
+    # +999999.99
     elif [[ "$PIC_TYPE" =~ ^\+?9+\.[9]+$ ]]; then
       IFS='.' read -r INT_PART DEC_PART <<< "$PIC_TYPE"
       INT_LEN=$(echo "$INT_PART" | tr -cd '9' | wc -c)
