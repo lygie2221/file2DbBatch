@@ -3,6 +3,10 @@ package de.lygie.batch.Model;
 import de.lygie.batch.Model.Cobol.AbstractCobolDatensatz;
 import de.lygie.batch.Model.Cobol.PicX;
 
+
+/**
+ *
+ */
 public class DBNA extends AbstractCobolDatensatz {
 
     private PicX kennung = new PicX(4);

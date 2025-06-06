@@ -43,25 +43,23 @@ public class Pic9 extends AbstractCobolPicture {
             throw new IllegalArgumentException("Input string cannot be null or empty");
         }
 
-        // Entferne das Dezimaltrennzeichen (nur das erste Vorkommen) und nicht-Ziffern
-        String cleaned = svalue.replaceFirst(java.util.regex.Pattern.quote(decimal), "");
-        cleaned = cleaned.replaceAll("[^0-9]", "");
+        // Entferne Dezimalzeichen (z. B. . oder ,) und alle Nicht-Ziffern
+        svalue = svalue.replaceAll(java.util.regex.Pattern.quote(decimal), "");
+        String digits = svalue.replaceAll("[^0-9]", "");
 
-        // Wenn der String zu lang ist, kürze von links
-        if (cleaned.length() > length) {
-            cleaned = cleaned.substring(cleaned.length() - length);
+        // Wenn zu lang: schneide von links, um auf `length` Ziffern zu kommen
+        if (digits.length() > length) {
+            digits = digits.substring(digits.length() - length);
         }
 
-        // Splitten in Ganzzahlteil und Nachkommastellen
-        int splitIndex = cleaned.length() - anzahlnachkommastellen;
-
+        // Split in value und nachkomma, basierend auf fester Zahl `anzahlnachkommastellen`
+        int splitIndex = digits.length() - anzahlnachkommastellen;
         if (splitIndex < 0) {
-            // zu wenige Stellen, alles Nachkommastellen
             value = BigInteger.ZERO;
-            wertnachkommastellen = Integer.parseInt(cleaned);
+            wertnachkommastellen = Integer.parseInt(digits);
         } else {
-            String intPart = cleaned.substring(0, splitIndex);
-            String decimalPart = cleaned.substring(splitIndex);
+            String intPart = digits.substring(0, splitIndex);
+            String decimalPart = digits.substring(splitIndex);
 
             value = new BigInteger(intPart.isEmpty() ? "0" : intPart);
             wertnachkommastellen = decimalPart.isEmpty() ? 0 : Integer.parseInt(decimalPart);
@@ -74,26 +72,24 @@ public class Pic9 extends AbstractCobolPicture {
         String decimalPart = "";
 
         if (anzahlnachkommastellen > 0) {
-            // Stelle sicher, dass Nachkomma genau x-stellig ist
             decimalPart = String.format("%0" + anzahlnachkommastellen + "d", wertnachkommastellen);
         }
 
-        String fullString = (anzahlnachkommastellen > 0)
+        String full = (anzahlnachkommastellen > 0)
                 ? intPart + decimal + decimalPart
                 : intPart;
 
-        // Links mit Nullen auffüllen, um Gesamtlänge zu erreichen
-        int padLength = length - fullString.length();
-        if (padLength > 0) {
-            char[] zeros = new char[padLength];
+        // Ziel: `length` Ziffern (ohne Komma)
+        int currentDigitCount = intPart.length() + decimalPart.length();
+        int paddingNeeded = length - currentDigitCount;
+
+        if (paddingNeeded > 0) {
+            char[] zeros = new char[paddingNeeded];
             java.util.Arrays.fill(zeros, '0');
-            fullString = new String(zeros) + fullString;
-        } else if (padLength < 0) {
-            // Sollte bei korrekter Benutzung nicht vorkommen
-            fullString = fullString.substring(-padLength); // Kürzen von links
+            full = new String(zeros) + full;
         }
 
-        return fullString;
+        return full;
     }
 
     // Getter für Tests
