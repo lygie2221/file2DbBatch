@@ -23,7 +23,7 @@ public class BatchJobIT {
     public static void setUp() {
         String dateiName = "/tmp/input.txt";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(dateiName))) {
-            for (int i = 1; i <= 100000; i++) {
+            for (int i = 1; i <= 10000000; i++) {
                 //writer.write(vsnr.getVsnr());
                 writer.write(StaticHelper.randomString(135));
                 writer.newLine();  // Fügt einen Zeilenumbruch hinzu

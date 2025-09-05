@@ -60,4 +60,19 @@ public class BatchJobResource {
         long executionId = jobOperator.start("file2blob", null);
         return "Batch-Job gestartet mit execution id: " + executionId;
     }
+
+    @GET
+    @Path("xmlStreamWriterTest")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String xmlStreamWriterTest() {
+
+        Properties jobParams = new Properties();
+        jobParams.setProperty("chunkSize", "1000");
+        jobParams.setProperty("output", "/home/lygie/test.xml");
+
+        // Ruft den JobOperator ab und startet den Batch-Job (Jobname entspricht dem in der Job-Definition)
+        JobOperator jobOperator = BatchRuntime.getJobOperator();
+        long executionId = jobOperator.start("xmlStreamWriterJob", jobParams);
+        return "Batch-Job gestartet mit execution id: " + executionId;
+    }
 }
