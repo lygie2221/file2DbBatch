@@ -4,6 +4,7 @@ import de.lygie.batch.helper.Order;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -30,15 +31,13 @@ abstract public class AbstractCobolDatensatz {
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
-        Field[] fields = getFields();
+        CobolField[] fields = getFields();
 
-        for (Field field : fields) {
-            // Zugriff auch auf private Felder erlauben
-            field.setAccessible(true);
+        for (CobolField field : fields) {
             try {
-                Object value = field.get(this);
+                Object value = field.getValue(this);
                 appendStringValue(value, sb);
-            } catch (IllegalAccessException e) {
+            } catch (ReflectiveOperationException e) {
                 sb.append(field.getName())
                         .append("=ACCESS_ERROR, ");
             }
@@ -108,13 +107,12 @@ abstract public class AbstractCobolDatensatz {
      */
     public void fromString(String input){
         int pos=0;
-        Field[] fields = getFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
+        CobolField[] fields = getFields();
+        for (CobolField field : fields) {
             try {
-                Object value = field.get(this);
+                Object value = field.getValue(this);
                 pos = parseValue(value, input, pos);
-            } catch (IllegalAccessException e) {
+            } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -180,7 +178,7 @@ abstract public class AbstractCobolDatensatz {
      * @return
      */
     public int fromCobolString(String input, int pos, int level) {
-        Field[] fields = getFields();
+        CobolField[] fields = getFields();
 
         if (level > 2) {
             return pos;
@@ -188,11 +186,10 @@ abstract public class AbstractCobolDatensatz {
         if (input.length() <= pos) {
             return pos;
         }
-        for (Field field : fields) {
-            field.setAccessible(true);
+        for (CobolField field : fields) {
             try {
                 Class<?> type = field.getType();
-                Object value = field.get(this);
+                Object value = field.getValue(this);
 
                 // 1) PicX
                 if (PicX.class.isAssignableFrom(type)) {
@@ -214,15 +211,15 @@ abstract public class AbstractCobolDatensatz {
                     Object[] arr = (Object[]) value;
                     // Falls noch nicht angelegt, erstelle das Array‑Objekt
                     if (arr == null) {
-                        int length = Array.getLength(value);
+                        int length = 0;
                         arr = (Object[]) Array.newInstance(type.getComponentType(), length);
-                        field.set(this, arr);
+                        field.setValue(this, arr);
                     }
                     level = level+1;
                     for (int i = 0; i < arr.length; i++) {
                         // Falls Element noch null, instanziere
                         if (arr[i] == null) {
-                            arr[i] = type.getComponentType().newInstance();
+                            arr[i] = newCobolDatensatz(type.getComponentType());
                         }
                         // rekursiver Aufruf auf das Unter‑Objekt
                         pos = ((AbstractCobolDatensatz) arr[i]).fromCobolString(input, pos, level);
@@ -237,7 +234,7 @@ abstract public class AbstractCobolDatensatz {
                     for (Object elem : coll) {
                         if (elem == null) {
                             // Instantiere neuen Eintrag (sofern nötig)
-                            elem = this.getClass().getComponentType().newInstance();
+                            elem = newCobolDatensatz(this.getClass().getComponentType());
                             // ...füge es zur Collection hinzu (Casting nötig)
                             ((java.util.Collection<Object>) coll).add(elem);
                         }
@@ -260,19 +257,16 @@ abstract public class AbstractCobolDatensatz {
     public String getInsertQuery(String tableName){
         StringBuilder sb = new StringBuilder();
         sb.append("insert into ").append(tableName).append(" (");
-        Class<?> clazz = this.getClass();
-        Field[] fields = getFields();
+        CobolField[] fields = getFields();
         int columns = 0;
-        for (Field field : fields) {
-            // Zugriff auch auf private Felder erlauben
-            field.setAccessible(true);
+        for (CobolField field : fields) {
             try {
-                Object value = field.get(this);
+                Object value = field.getValue(this);
                 if (value instanceof PicX || value instanceof Pic9) {
                     sb.append(field.getName()).append(",");
                     columns++;
                 }
-            } catch (IllegalAccessException e) {
+            } catch (ReflectiveOperationException e) {
 
             }
         }
@@ -290,13 +284,11 @@ abstract public class AbstractCobolDatensatz {
      * @throws SQLException
      */
     public void bindParamsAndAdBatch(PreparedStatement stmt) throws SQLException {
-        Field[] fields = getFields();
+        CobolField[] fields = getFields();
         int column = 1;
-        for (Field field : fields) {
-            // Zugriff auch auf private Felder erlauben
-            field.setAccessible(true);
+        for (CobolField field : fields) {
             try {
-                Object value = field.get(this);
+                Object value = field.getValue(this);
                 if (value instanceof PicX) {
                     stmt.setString(column++,((PicX) value).getValue());
                 }
@@ -305,7 +297,7 @@ abstract public class AbstractCobolDatensatz {
                     stmt.setBigDecimal(column++,new BigDecimal(val));
 
                 }
-            } catch (IllegalAccessException e) {
+            } catch (ReflectiveOperationException e) {
 
             }
         }
@@ -327,13 +319,10 @@ abstract public class AbstractCobolDatensatz {
             sb.append(primaryIdField).append(" INT NOT NULL PRIMARY KEY AUTO_INCREMENT,");
         }
 
-        Class<?> clazz = this.getClass();
-        Field[] fields = clazz.getDeclaredFields();
-        for (Field field : fields) {
-            // Zugriff auch auf private Felder erlauben
-            field.setAccessible(true);
+        CobolField[] fields = getFields();
+        for (CobolField field : fields) {
             try {
-                Object value = field.get(this);
+                Object value = field.getValue(this);
                 if (value instanceof PicX) {
                     sb.append("`");
                     sb.append(field.getName());
@@ -347,14 +336,14 @@ abstract public class AbstractCobolDatensatz {
                     sb.append(field.getName()).append(" DECIMAL(" ).append(((Pic9) value).getLength()).append(",0),");
 
                 }
-            } catch (IllegalAccessException e) {
+            } catch (ReflectiveOperationException e) {
 
             }
         }
         return sb.toString();
     }
 
-    private Field[] getFields() {
+    private CobolField[] getFields() {
         Class<?> clazz = this.getClass();
         Field[] fields = clazz.getDeclaredFields();
         // Karte: Field → ursprünglicher Index
@@ -367,7 +356,89 @@ abstract public class AbstractCobolDatensatz {
             Order o = f.getAnnotation(Order.class);
             return o != null ? o.value() : Integer.MAX_VALUE;
         }).thenComparing(originalIndex::get));
-        return fields;
+
+        List<CobolField> cobolFields = new ArrayList<CobolField>();
+        for (Field field : fields) {
+            CobolField cobolField = createCobolField(clazz, field);
+            if (cobolField != null) {
+                cobolFields.add(cobolField);
+            }
+        }
+        return cobolFields.toArray(new CobolField[cobolFields.size()]);
+    }
+
+    private CobolField createCobolField(Class<?> clazz, Field field) {
+        Method getter = findGetter(clazz, field);
+        if (getter == null) {
+            return null;
+        }
+        Method setter = findSetter(clazz, field);
+        return new CobolField(field.getName(), field.getType(), getter, setter);
+    }
+
+    private Method findGetter(Class<?> clazz, Field field) {
+        String propertyName = toMethodSuffix(field.getName());
+        try {
+            return clazz.getMethod("get" + propertyName);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private Method findSetter(Class<?> clazz, Field field) {
+        String propertyName = toMethodSuffix(field.getName());
+        try {
+            return clazz.getMethod("set" + propertyName, field.getType());
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private String toMethodSuffix(String fieldName) {
+        if (fieldName == null || fieldName.length() == 0) {
+            return fieldName;
+        }
+        return Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+    }
+
+    private AbstractCobolDatensatz newCobolDatensatz(Class<?> type) throws ReflectiveOperationException {
+        if (type == null || !AbstractCobolDatensatz.class.isAssignableFrom(type)) {
+            throw new IllegalArgumentException("Kein Cobol-Datensatztyp vorhanden");
+        }
+        return (AbstractCobolDatensatz) type.getConstructor().newInstance();
+    }
+
+    private static class CobolField {
+        private final String name;
+        private final Class<?> type;
+        private final Method getter;
+        private final Method setter;
+
+        private CobolField(String name, Class<?> type, Method getter, Method setter) {
+            this.name = name;
+            this.type = type;
+            this.getter = getter;
+            this.setter = setter;
+        }
+
+        private String getName() {
+            return name;
+        }
+
+        private Class<?> getType() {
+            return type;
+        }
+
+        private Object getValue(Object target) throws InvocationTargetException, IllegalAccessException {
+            return getter.invoke(target);
+        }
+
+        private void setValue(Object target, Object value) throws InvocationTargetException, IllegalAccessException {
+            if (setter == null) {
+                throw new IllegalStateException("Kein Setter fuer Feld " + name + " vorhanden");
+            }
+            setter.invoke(target, value);
+        }
     }
 
 
